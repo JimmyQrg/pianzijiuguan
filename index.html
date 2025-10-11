@@ -3,161 +3,214 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>骗子酒馆：左轮手枪模拟器</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<title>Liar Tavern - Gun Simulator</title>
+
 <style>
-  body {
-    margin: 0;
-    background: radial-gradient(circle at center, #2a1e18 0%, #0d0907 100%);
-    font-family: 'Press Start 2P', monospace;
-    color: #c1a97b;
-    text-align: center;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  h1 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: #d3b982;
-    text-shadow: 0 0 8px #513f2d;
-  }
-  #players {
-    margin-bottom: 15px;
-  }
-  select {
-    background: #1b120d;
-    color: #c9ad73;
-    border: 2px solid #5c452f;
-    padding: 5px;
-    font-family: 'Press Start 2P', monospace;
-  }
-  button {
-    background: #3b2a1f;
-    color: #d9c197;
-    border: 2px solid #70573f;
-    font-family: 'Press Start 2P', monospace;
-    padding: 12px 24px;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: 0.1s;
-  }
-  button:hover {
-    background: #5a4030;
-    box-shadow: 0 0 10px #a88356;
-  }
-  #status {
-    font-size: 14px;
-    margin-top: 30px;
-    min-height: 40px;
-    text-shadow: 0 0 5px #3a2a1f;
-  }
-  #lamp {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 50% 20%, rgba(255,230,180,0.08), rgba(0,0,0,0.95) 80%);
-    pointer-events: none;
-    animation: flicker 3s infinite;
-  }
-  @keyframes flicker {
-    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-      opacity: 1;
-    }
-    20%, 24%, 55% {
-      opacity: 0.7;
-    }
-  }
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: "Press Start 2P", monospace;
+  color: #eee;
+  background: radial-gradient(ellipse at center, #2b1b10 0%, #0d0704 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* 酒馆雾气 */
+.smoke {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.05) 70%);
+  animation: fogMove 30s infinite alternate ease-in-out;
+  pointer-events: none;
+}
+@keyframes fogMove {
+  from { transform: translate(-20px, -10px); }
+  to { transform: translate(20px, 10px); }
+}
+
+/* 闪烁灯光 */
+@keyframes lightFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
+  80% { opacity: 0.9; }
+}
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 30%, rgba(255,235,180,0.15), transparent 70%);
+  animation: lightFlicker 6s infinite;
+  pointer-events: none;
+}
+
+/* 转轮与按钮区 */
+.revolver {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #444 0%, #222 80%);
+  box-shadow: 0 0 20px rgba(0,0,0,0.7), inset 0 0 10px #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.chamber {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  box-shadow: inset 0 0 5px #000;
+  position: absolute;
+}
+.chamber:nth-child(1) { transform: rotate(0deg) translateY(-70px); }
+.chamber:nth-child(2) { transform: rotate(60deg) translateY(-70px); }
+.chamber:nth-child(3) { transform: rotate(120deg) translateY(-70px); }
+.chamber:nth-child(4) { transform: rotate(180deg) translateY(-70px); }
+.chamber:nth-child(5) { transform: rotate(240deg) translateY(-70px); }
+.chamber:nth-child(6) { transform: rotate(300deg) translateY(-70px); }
+
+button {
+  background: #3c2b20;
+  color: #f8e4b1;
+  border: 2px solid #6d4c33;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px #2a1c12;
+  transition: all 0.15s;
+  margin: 5px;
+}
+button:hover {
+  background: #5a3e2b;
+}
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px #2a1c12;
+}
+
+#playerCountInput {
+  background: #2a1c12;
+  color: #f8e4b1;
+  border: 2px solid #6d4c33;
+  border-radius: 6px;
+  padding: 5px 8px;
+  text-align: center;
+  width: 80px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+#info {
+  margin-top: 10px;
+  color: #c0a889;
+  font-size: 12px;
+}
 </style>
 </head>
-<body>
-  <div id="lamp"></div>
-  <h1>骗子酒馆：左轮手枪模拟器</h1>
-  <div id="players">
-    <label>玩家数量：</label>
-    <select id="playerCount">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-      <option value="4">4</option>
-    </select>
-  </div>
-  <button id="nextPlayerBtn">切换玩家</button>
-  <button id="fireBtn">扣下扳机</button>
-  <div id="status"></div>
 
-  <audio id="bgm" src="background-music.mp3" loop></audio>
-  <audio id="empty" src="empty.mp3"></audio>
-  <audio id="pop" src="pop.mp3"></audio>
+<body>
+<div class="smoke"></div>
+
+<h2 style="color:#f1d9b2;text-shadow:0 0 10px #000;">Liar Tavern - Gun Simulator</h2>
+
+<input id="playerCountInput" type="number" placeholder="Player Amount (1~100)" min="1" max="100" value="1">
+<button onclick="buttonClick(); setPlayers()">Set Player Amount</button>
+
+<div class="revolver" id="revolver"></div>
+<button onclick="buttonClick(); shoot()">开枪</button>
+<div id="info">Wait for filling the bullets...</div>
+
+<audio id="emptySound" src="empty.mp3"></audio>
+<audio id="popSound" src="pop.mp3"></audio>
+<audio id="bgMusic" src="background-music.mp3" loop></audio>
+<audio id="tapSound" src="tap.mp3"></audio>
 
 <script>
-  const bgm = document.getElementById('bgm');
-  const empty = document.getElementById('empty');
-  const pop = document.getElementById('pop');
-  const status = document.getElementById('status');
-  const playerCountSelect = document.getElementById('playerCount');
-  const nextPlayerBtn = document.getElementById('nextPlayerBtn');
-  const fireBtn = document.getElementById('fireBtn');
+const revolver = document.getElementById("revolver");
+const info = document.getElementById("info");
+const emptySound = document.getElementById("emptySound");
+const popSound = document.getElementById("popSound");
+const bgMusic = document.getElementById("bgMusic");
+const tapSound = document.getElementById("tapSound");
+bgMusic.volume = 0.4;
 
-  let playerCount = 1;
-  let currentPlayer = 1;
-  let chambers = {}; // 每个玩家独立弹仓
+let players = 1;
+let currentPlayer = 0;
+let chambers = [];
+let currentChamberIndex = [];
+let bgStarted = false;
 
-  // 初始化
-  function initPlayers() {
-    chambers = {};
-    for (let i = 1; i <= playerCount; i++) {
-      let bullets = Array(6).fill(false);
-      bullets[Math.floor(Math.random() * 6)] = true; // 随机装一发子弹
-      chambers[i] = { bullets, index: 0 };
-    }
-    status.innerHTML = `夜色昏暗。第 ${currentPlayer} 位玩家拿起了左轮……`;
+// 枪膛
+for (let i=0; i<6; i++) {
+  const c = document.createElement("div");
+  c.classList.add("chamber");
+  revolver.appendChild(c);
+}
+
+// 点击按钮统一音效
+function buttonClick() {
+  tapSound.currentTime = 0;
+  tapSound.play();
+
+  // 用户第一次点击时启动背景音乐
+  if (!bgStarted) {
+    bgMusic.play().catch(()=>{});
+    bgStarted = true;
+  }
+}
+
+// 设置玩家数并装弹
+function setPlayers() {
+  const val = parseInt(document.getElementById("playerCountInput").value);
+  if (isNaN(val) || val < 1 || val > 100) {
+    alert("The player amount has to be between 1 and 100.");
+    return;
+  }
+  players = val;
+  currentPlayer = 0;
+  chambers = [];
+  currentChamberIndex = [];
+  for (let i=0; i<players; i++) {
+    const bulletPos = Math.floor(Math.random() * 6);
+    chambers.push(bulletPos);
+    currentChamberIndex.push(0);
+  }
+  info.textContent = `Bullet filled, currect player: 1 / ${players}`;
+}
+
+// 开枪逻辑
+function shoot() {
+  if (chambers.length === 0) {
+    info.textContent = "Please set the player amount first.";
+    return;
   }
 
-  // 切换玩家
-  nextPlayerBtn.onclick = () => {
-    currentPlayer++;
-    if (currentPlayer > playerCount) currentPlayer = 1;
-    status.innerHTML = `第 ${currentPlayer} 位玩家的手在发抖……`;
-  };
+  const player = currentPlayer;
+  const index = currentChamberIndex[player];
+  const bulletPos = chambers[player];
 
-  // 改变玩家数量
-  playerCountSelect.onchange = () => {
-    playerCount = parseInt(playerCountSelect.value);
-    currentPlayer = 1;
-    initPlayers();
-  };
+  if (index === bulletPos) {
+    popSound.currentTime = 0;
+    popSound.play();
+    info.textContent = `Player ${player+1} fires! Blood exploded out from the player's head in all directions.!`;
+  } else {
+    emptySound.currentTime = 0;
+    emptySound.play();
+    info.textContent = `Player ${player+1} Fires! Nothing happened. The player breaths heavily`;
+  }
 
-  // 扣下扳机
-  fireBtn.onclick = () => {
-    bgm.volume = 0.3;
-    bgm.play();
-
-    const chamber = chambers[currentPlayer];
-    const { bullets, index } = chamber;
-
-    if (bullets[index]) {
-      pop.play();
-      status.innerHTML = `砰——！第 ${currentPlayer} 位玩家的命运终结在了此刻。`;
-    } else {
-      empty.play();
-      status.innerHTML = `咔……寂静的酒馆里，只有呼吸声在回荡。`;
-    }
-
-    // 旋转弹仓（随机）
-    chamber.index = Math.floor(Math.random() * 6);
-  };
-
-  // 启动
-  window.onload = () => {
-    playerCount = parseInt(playerCountSelect.value);
-    initPlayers();
-    setTimeout(() => bgm.play(), 1000);
-  };
+  currentChamberIndex[player] = (index + 1) % 6;
+  currentPlayer = (currentPlayer + 1) % players;
+  info.textContent += ` → Next Player: ${currentPlayer+1}`;
+}
 </script>
 </body>
 </html>
