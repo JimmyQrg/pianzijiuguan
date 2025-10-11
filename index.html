@@ -1,437 +1,185 @@
-<!doctype html>
-<html lang="zh-CN">
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>骗子酒馆 · 左轮手枪模拟器</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0f1724;
-    --panel:#0b1220;
-    --accent:#f59e0b;
-    --muted:#94a3b8;
-    --danger:#ef4444;
-    --glass: rgba(255,255,255,0.04);
-  }
-  html,body{height:100%;margin:0;font-family: "Segoe UI", Roboto, "PingFang SC", "Microsoft Yahei", sans-serif;background:linear-gradient(180deg,#081226 0%, #0b1530 100%);color:#e6eef8}
-  .wrap{
-    min-height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:32px;
-  }
-  .card{
-    width:920px;
-    max-width:96vw;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:16px;
-    padding:22px;
-    box-shadow: 0 8px 30px rgba(2,6,23,0.6);
-    border:1px solid rgba(255,255,255,0.03);
-    display:flex;
-    gap:20px;
-    align-items:flex-start;
-  }
+    body {
+        font-family: "Press Start 2P", monospace;
+        background: radial-gradient(circle at center, #0a0f1f, #000);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+    }
 
-  /* left: visual revolver */
-  .left {
-    width:420px;
-    flex:0 0 420px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:12px;
-  }
-  .title {
-    font-weight:700;font-size:18px;color:var(--accent);
-    display:flex;gap:8px;align-items:center;
-  }
-  .subtitle{color:var(--muted);font-size:12px}
+    h1 {
+        color: #ffa500;
+        text-shadow: 0 0 10px #ff8800;
+        font-size: 18px;
+        margin-bottom: 30px;
+    }
 
-  .revolver {
-    width:300px;height:300px;position:relative;display:flex;align-items:center;justify-content:center;
-    background: radial-gradient(circle at 30% 35%, rgba(255,255,255,0.02), transparent 25%), var(--panel);
-    border-radius:50%;
-    box-shadow: inset 0 -6px 18px rgba(0,0,0,0.7), 0 10px 30px rgba(3,6,18,0.6);
-    border: 8px solid rgba(255,255,255,0.02);
-    overflow:visible;
-  }
+    .gun-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 25px 40px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(255, 165, 0, 0.1);
+    }
 
-  /* chambers: 6 */
-  .chamber {
-    --size:60px;
-    width:var(--size);
-    height:var(--size);
-    border-radius:50%;
-    position:absolute;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:linear-gradient(180deg,#0b1220,#08101a);
-    border:3px solid rgba(255,255,255,0.03);
-    box-shadow: 0 4px 10px rgba(2,6,23,0.6);
-    transition: transform 300ms ease, box-shadow 200ms;
-    font-weight:700;
-    color:var(--muted);
-    font-size:12px;
-  }
-  /* place 6 chambers around circle */
-  .chamber[data-index="0"]{transform:translate(-50%, -170px)}
-  .chamber[data-index="1"]{transform:rotate(60deg) translate(0, -170px) rotate(-60deg)}
-  .chamber[data-index="2"]{transform:rotate(120deg) translate(0, -170px) rotate(-120deg)}
-  .chamber[data-index="3"]{transform:translate(-50%, 20px)}
-  .chamber[data-index="4"]{transform:rotate(-60deg) translate(0, -170px) rotate(60deg)}
-  .chamber[data-index="5"]{transform:rotate(-120deg) translate(0, -170px) rotate(120deg)}
+    button {
+        font-family: "Press Start 2P", monospace;
+        font-size: 10px;
+        color: white;
+        background: #222;
+        border: 2px solid #555;
+        padding: 10px 15px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
 
-  .bullet {
-    width:34px;height:34px;border-radius:50%;
-    background:linear-gradient(180deg,#ffd27d,#ffb84a);
-    display:flex;align-items:center;justify-content:center;
-    color:#2a1b00;font-weight:800;font-size:14px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-    transform:scale(0);transition:transform 180ms ease;
-  }
+    button:hover {
+        background: #444;
+        transform: scale(1.05);
+    }
 
-  .chamber.active {
-    box-shadow: 0 8px 25px rgba(165, 180, 252, 0.12);
-    transform:scale(1.06) !important;
-  }
-  .chamber.fired { box-shadow:none; opacity:0.25; }
+    .fire-btn {
+        background: #a00000;
+        border-color: #ff4040;
+    }
 
-  /* hammer */
-  .hammer {
-    position:absolute;top:12px;right:-40px;width:120px;height:120px;
-    background:linear-gradient(180deg,#2b3039,#131417);
-    transform-origin:bottom right;
-    border-radius:12px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.6);
-    display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;
-  }
-  .hammer.hit { transform: rotate(-30deg) translate(0,4px); transition: transform 120ms ease; }
+    .fire-btn:hover {
+        background: #ff0000;
+    }
 
-  /* controls */
-  .controls{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-  }
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  button {
-    background:linear-gradient(180deg,#0f1724,#0b1220);
-    color:#e6eef8;border:1px solid rgba(255,255,255,0.04);
-    padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;
-    box-shadow: 0 6px 18px rgba(2,6,23,0.6); transition:transform 120ms ease, box-shadow 120ms;
-  }
-  button:active{transform:translateY(1px)}
-  button.secondary{background:transparent;border:1px dashed rgba(255,255,255,0.04);font-weight:600}
-  button.danger{background:linear-gradient(180deg,#3b0f12,#7b1212);border-color:rgba(255,0,0,0.18)}
-  .small{padding:6px 8px;font-size:13px;border-radius:8px}
+    .log-box {
+        margin-top: 20px;
+        width: 280px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 10px;
+        overflow-y: auto;
+        font-size: 10px;
+        line-height: 1.5;
+        white-space: pre-line;
+    }
 
-  .status{
-    background:var(--glass);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);
-    color:var(--muted);font-size:14px;min-height:68px;
-    display:flex;align-items:center;
-  }
+    .chamber {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 10px 0;
+    }
 
-  .panel {
-    display:flex;flex-direction:column;gap:8px;
-  }
+    .slot {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #333;
+        border: 2px solid #777;
+    }
 
-  .switch {
-    display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);
-  }
-  .switch input{transform:scale(1.2)}
+    .slot.loaded {
+        background: #ffb300;
+        box-shadow: 0 0 8px #ffb300;
+    }
 
-  .log {
-    max-height:180px;overflow:auto;padding:10px;border-radius:8px;background:rgba(6,10,18,0.4);
-    border:1px solid rgba(255,255,255,0.02);font-size:13px;color:#cfe0ff;
-  }
-
-  .footer {
-    margin-top:6px;font-size:12px;color:rgba(255,255,255,0.35);
-  }
-
-  /* subtle spin animation (used on container to visually spin) */
-  @keyframes spinfast { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-  /* responsive */
-  @media (max-width:880px){
-    .card{flex-direction:column;align-items:center}
-    .left{flex:unset;width:100%}
-    .revolver{width:260px;height:260px}
-  }
+    .slot.current {
+        border-color: #00ffff;
+        box-shadow: 0 0 10px #00ffff;
+    }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card" role="application" aria-label="骗子酒馆 左轮手枪模拟器">
-    <div class="left">
-      <div class="title">🃏 骗子酒馆 · 左轮手枪模拟器</div>
-      <div class="subtitle">装弹 → 旋转弹膛 → 扳机（试试骗子模式）</div>
+    <h1>骗子酒馆 · 左轮手枪模拟器</h1>
 
-      <div class="revolver" id="revolver" aria-hidden="false">
-        <!-- chambers -->
-        <div class="chamber" data-index="0"><div class="bullet" /></div>
-        <div class="chamber" data-index="1"><div class="bullet" /></div>
-        <div class="chamber" data-index="2"><div class="bullet" /></div>
-        <div class="chamber" data-index="3"><div class="bullet" /></div>
-        <div class="chamber" data-index="4"><div class="bullet" /></div>
-        <div class="chamber" data-index="5"><div class="bullet" /></div>
+    <div class="gun-container">
+        <div class="chamber" id="chamber"></div>
 
-        <!-- hammer -->
-        <div class="hammer" id="hammer">锤子</div>
-      </div>
+        <div>
+            <button id="load">装弹</button>
+            <button id="spin">旋转弹膛</button>
+            <button class="fire-btn" id="fire">扳机</button>
+        </div>
 
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button id="loadBtn">装弹（1发）</button>
-        <button id="spinBtn" class="secondary">旋转弹膛</button>
-        <button id="pullBtn" class="danger">扳机</button>
-      </div>
-
-      <div class="footer">提示：点击“骗子模式”可预设下一次是否中弹（作弊仅用于娱乐）</div>
+        <div class="log-box" id="log">[系统] 模拟器已启动。</div>
     </div>
-
-    <div class="controls">
-      <div class="panel">
-        <div class="row">
-          <label class="switch"><input type="checkbox" id="cheatToggle"> 骗子模式</label>
-          <select id="cheatSelect" class="small" disabled>
-            <option value="none">不设定（随机）</option>
-            <option value="safe">保证安全（下一次一定安全）</option>
-            <option value="bang">保证中弹（下一次一定中）</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <button id="resetBtn" class="small secondary">重置</button>
-          <button id="spinAnimBtn" class="small">快速演示旋转</button>
-          <div style="flex:1"></div>
-          <button id="autoPlay" class="small">自动演示 ×5</button>
-        </div>
-
-        <div class="status" id="status">状态：空弹膛。请先装弹或旋转。</div>
-
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div style="flex:1">
-            <div style="font-size:13px;color:var(--muted);margin-bottom:6px">动作日志</div>
-            <div class="log" id="log" aria-live="polite"></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
-/*
-  左轮手枪模拟器 JS
-  - 6 腔弹膛
-  - loadBtn: 装弹（在随机一个空腔放一发）
-  - spinBtn: 随机旋转（当前指针移动到随机位置）
-  - pullBtn: 扳机，判断当前腔是否有弹
-  - cheatToggle + cheatSelect：骗子模式，强制下一次结果
-  - resetBtn: 重置所有状态
-  - autoPlay: 自动演示若干次（演示用）
-*/
+    const chamber = document.getElementById('chamber');
+    const logBox = document.getElementById('log');
+    const slots = [];
+    let bulletIndex = -1;
+    let currentIndex = 0;
+    let loaded = false;
 
-(function(){
-  const chambers = Array.from(document.querySelectorAll('.chamber'));
-  const bulletEls = chambers.map(c => c.querySelector('.bullet'));
-  const loadBtn = document.getElementById('loadBtn');
-  const spinBtn = document.getElementById('spinBtn');
-  const pullBtn = document.getElementById('pullBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const spinAnimBtn = document.getElementById('spinAnimBtn');
-  const autoPlay = document.getElementById('autoPlay');
-  const status = document.getElementById('status');
-  const logEl = document.getElementById('log');
-  const hammer = document.getElementById('hammer');
-  const cheatToggle = document.getElementById('cheatToggle');
-  const cheatSelect = document.getElementById('cheatSelect');
-  const revolver = document.getElementById('revolver');
-
-  const TOTAL = 6;
-  let bulletIndex = null;       // 真子弹置于哪个腔，null = 没装弹
-  let currentIndex = 0;         // 当前对准的腔（扳机时判定 currentIndex）
-  let fired = Array(TOTAL).fill(false); // 该腔是否已经扣过扳机并显示过（视觉上淡化）
-  let animRunning = false;
-
-  function log(text){
-    const time = new Date().toLocaleTimeString();
-    logEl.innerHTML = `<div style="margin-bottom:6px"><b>[${time}]</b> ${text}</div>` + logEl.innerHTML;
-  }
-
-  function setStatus(t, tone){
-    status.textContent = '状态：' + t;
-    if(tone === 'danger') status.style.color = 'var(--danger)';
-    else status.style.color = '';
-  }
-
-  function updateChambers(){
-    chambers.forEach((c, i) => {
-      c.classList.remove('active','fired');
-      c.querySelector('.bullet').style.transform = 'scale(0)';
-      if (i === currentIndex) c.classList.add('active');
-      if (fired[i]) c.classList.add('fired');
-      // show bullet only if loaded and reveal on fired or debug
-      if (bulletIndex === i && (fired[i] || cheatToggle.checked && cheatSelect.value !== 'none' && false /* don't reveal early */)) {
-        c.querySelector('.bullet').style.transform = 'scale(1)';
-      } else {
-        // we will reveal bullet only when fired and it's the bullet chamber
-        if (fired[i] && bulletIndex === i) c.querySelector('.bullet').style.transform = 'scale(1)';
-      }
-    });
-  }
-
-  function randomInt(n){ return Math.floor(Math.random()*n); }
-
-  function loadBullet(){
-    if (bulletIndex !== null){
-      setStatus('弹膛已装弹（已存在一发）。先重置或继续旋转。');
-      log('尝试装弹，但弹膛已有子弹。');
-      return;
-    }
-    bulletIndex = randomInt(TOTAL);
-    fired = Array(TOTAL).fill(false);
-    updateChambers();
-    setStatus('已装一发子弹（位置隐藏）。准备旋转或直接扳机。');
-    log(`装弹：随机位置（已隐藏）。`);
-  }
-
-  function spinCylinder(intense=false){
-    if (animRunning) return;
-    animRunning = true;
-    // set a CSS spin visual
-    const spins = intense ? 18 : (6 + randomInt(8));
-    const duration = intense ? 900 : 500 + randomInt(600);
-    revolver.style.transition = `transform ${duration}ms cubic-bezier(.2,.9,.3,1)`;
-    const rot = 360 * spins + randomInt(360);
-    revolver.style.transform = `rotate(${rot}deg)`;
-    setStatus('弹膛旋转中…');
-    log('旋转弹膛（手柄旋转）');
-
-    // choose new currentIndex after spin
-    setTimeout(()=> {
-      // calculate resulting index by mapping rotation to chamber
-      // rotateDegrees % 360 -> angle -> index
-      const angle = rot % 360;
-      // each chamber spans 60 degrees; choose index so that 0deg corresponds to chamber 0
-      const idx = Math.floor(((360 - angle + 30) % 360) / 60) % TOTAL;
-      currentIndex = idx;
-      // reset transform (so UI stable) but rotate chambers back using no visual change (we keep active class)
-      revolver.style.transition = '';
-      revolver.style.transform = '';
-      animRunning = false;
-      setStatus('旋转完毕。对准腔 #' + (currentIndex+1) + '。');
-      log(`弹膛停止，对准腔 ${currentIndex+1}`);
-      updateChambers();
-    }, duration + 20);
-  }
-
-  function pullTrigger(){
-    if (animRunning) return;
-    // hammer hit animation
-    hammer.classList.add('hit');
-    setTimeout(()=> hammer.classList.remove('hit'), 140);
-    // decide whether it's bang based on cheat or randomness
-    let resultBang = false;
-    if (cheatToggle.checked && cheatSelect.value !== 'none') {
-      if (cheatSelect.value === 'bang') resultBang = true;
-      else if (cheatSelect.value === 'safe') resultBang = false;
-      // cheat applies only to next pull: clear cheat toggle selection (one-time)
-      // we won't auto-uncheck the toggle; we clear the choose to none to signal used
-      cheatSelect.value = 'none';
-    } else {
-      resultBang = (bulletIndex !== null && currentIndex === bulletIndex);
+    function log(msg) {
+        const time = new Date().toLocaleTimeString();
+        logBox.textContent += `\n[${time}] ${msg}`;
+        logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // Visual: reveal chamber when fired
-    fired[currentIndex] = true;
-    updateChambers();
-
-    if (resultBang){
-      setStatus('💥 BANG! 中弹！', 'danger');
-      log(`扳机：第 ${currentIndex+1} 腔 — 中弹！`);
-      // reveal bullet at fired chamber
-      if (bulletIndex !== null) {
-        // ensure bullet displayed
-        chambers[bulletIndex].querySelector('.bullet').style.transform = 'scale(1)';
-      }
-      // after bang, lock actions until reset
-      disabledAll(true);
-    } else {
-      setStatus('✓ 咔嚓（安全） — 未中弹。转到下一个腔。');
-      log(`扳机：第 ${currentIndex+1} 腔 — 安全。`);
-      // advance to next chamber (like转动弹簧)
-      currentIndex = (currentIndex + 1) % TOTAL;
-      updateChambers();
+    // 初始化弹膛
+    function initChamber() {
+        chamber.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            const div = document.createElement('div');
+            div.classList.add('slot');
+            chamber.appendChild(div);
+            slots.push(div);
+        }
+        updateChamber();
     }
-  }
 
-  function disabledAll(flag){
-    [loadBtn, spinBtn, pullBtn, spinAnimBtn, autoPlay].forEach(b => b.disabled = flag);
-  }
-
-  function resetAll(){
-    bulletIndex = null;
-    currentIndex = 0;
-    fired = Array(TOTAL).fill(false);
-    revolver.style.transform = '';
-    updateChambers();
-    setStatus('已重置。弹膛为空。');
-    log('重置：弹膛清空，恢复初始状态。');
-    disabledAll(false);
-  }
-
-  // automatic demo: run N cycles of load->spin->pull
-  async function autoDemo(n=5){
-    disabledAll(true);
-    for (let i=0;i<n;i++){
-      resetAll();
-      await sleep(300);
-      loadBullet();
-      await sleep(400);
-      spinCylinder(true);
-      await sleep(1100);
-      pullTrigger();
-      await sleep(700);
-      // if bang happened, break (to show effect)
-      if (bulletIndex !== null && fired[bulletIndex]) break;
+    function updateChamber() {
+        slots.forEach((slot, i) => {
+            slot.classList.remove('loaded', 'current');
+            if (i === bulletIndex) slot.classList.add('loaded');
+            if (i === currentIndex) slot.classList.add('current');
+        });
     }
-    disabledAll(false);
-  }
 
-  function sleep(ms){ return new Promise(res=>setTimeout(res,ms)); }
+    document.getElementById('load').onclick = () => {
+        bulletIndex = Math.floor(Math.random() * 6);
+        currentIndex = 0;
+        loaded = true;
+        log("装弹完成。子弹已上膛。");
+        updateChamber();
+    };
 
-  // event listeners
-  loadBtn.addEventListener('click', loadBullet);
-  spinBtn.addEventListener('click', ()=> spinCylinder(false));
-  spinAnimBtn.addEventListener('click', ()=> spinCylinder(true));
-  pullBtn.addEventListener('click', pullTrigger);
-  resetBtn.addEventListener('click', resetAll);
-  autoPlay.addEventListener('click', ()=> autoDemo(5));
+    document.getElementById('spin').onclick = () => {
+        if (!loaded) return log("请先装弹！");
+        currentIndex = Math.floor(Math.random() * 6);
+        log("旋转弹膛…… 位置随机！");
+        updateChamber();
+    };
 
-  cheatToggle.addEventListener('change', e=>{
-    cheatSelect.disabled = !e.target.checked;
-    if (!e.target.checked) cheatSelect.value = 'none';
-  });
+    document.getElementById('fire').onclick = () => {
+        if (!loaded) return log("还没有装弹。");
+        if (currentIndex === bulletIndex) {
+            log("💥 砰！你死了。");
+            loaded = false;
+            updateChamber();
+        } else {
+            log("咔。没事。下一轮……");
+            currentIndex = (currentIndex + 1) % 6;
+            updateChamber();
+        }
+    };
 
-  // initialize
-  resetAll();
-  log('模拟器已就绪。欢迎来到骗子酒馆。');
-
-  // Accessibility: keyboard space triggers pull
-  window.addEventListener('keydown', (e)=>{
-    if (e.code === 'Space') {
-      e.preventDefault();
-      if (!pullBtn.disabled) pullBtn.click();
-    }
-  });
-
-})();
+    initChamber();
 </script>
 </body>
 </html>
