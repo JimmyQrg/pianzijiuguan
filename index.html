@@ -140,10 +140,12 @@ button:hover {
 <div id="log"></div>
 <div class="ambient">「骗子酒馆的空气弥漫着陈旧与宿醉……」</div>
 
-<!-- 背景音乐（低沉钢琴与酒馆音效） -->
-<audio id="bgm" loop autoplay>
-  <source src="https://cdn.pixabay.com/audio/2023/02/28/audio_0cc4e7e8eb.mp3" type="audio/mpeg">
-</audio>
+<!-- 背景音乐 -->
+<audio id="bgm" src="background-music.mp3" loop autoplay></audio>
+<!-- 空枪音效 -->
+<audio id="emptySound" src="empty.mp3"></audio>
+<!-- 子弹爆发音效 -->
+<audio id="popSound" src="pop.mp3"></audio>
 
 <script>
 let chambers = [false, false, false, false, false, false];
@@ -155,6 +157,8 @@ let gameOver = false;
 const log = document.getElementById('log');
 const barrel = document.getElementById('barrel');
 const trigger = document.getElementById('trigger');
+const emptySound = document.getElementById('emptySound');
+const popSound = document.getElementById('popSound');
 
 function addLog(text) {
   const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
@@ -170,6 +174,8 @@ trigger.addEventListener('click', () => {
   setTimeout(() => barrel.classList.remove('fade'), 500);
 
   if (chambers[currentPosition]) {
+    popSound.currentTime = 0;
+    popSound.play();
     barrel.textContent = "💥 砰！";
     addLog("砰！血液溅在昏黄的灯下……一切静止。");
     gameOver = true;
@@ -177,6 +183,8 @@ trigger.addEventListener('click', () => {
     trigger.disabled = true;
     document.body.style.animation = "bloodPulse 1s infinite";
   } else {
+    emptySound.currentTime = 0;
+    emptySound.play();
     barrel.textContent = "咔……";
     addLog("咔……没响。你听见角落的钟滴答作响。");
     currentPosition = (currentPosition + 1) % 6;
