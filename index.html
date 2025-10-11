@@ -4,182 +4,154 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>骗子酒馆 · 左轮手枪模拟器</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-    body {
-        font-family: "Press Start 2P", monospace;
-        background: radial-gradient(circle at center, #0a0f1f, #000);
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-        overflow: hidden;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-    h1 {
-        color: #ffa500;
-        text-shadow: 0 0 10px #ff8800;
-        font-size: 18px;
-        margin-bottom: 30px;
-    }
+body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at center, #2b1f1f 0%, #0d0a0a 100%);
+  color: #f0e0c0;
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
 
-    .gun-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 25px 40px;
-        border-radius: 15px;
-        box-shadow: 0 0 20px rgba(255, 165, 0, 0.1);
-    }
+h1 {
+  font-size: 20px;
+  color: #ffb84d;
+  text-shadow: 0 0 10px #3b2b0b;
+  margin-bottom: 30px;
+}
 
-    button {
-        font-family: "Press Start 2P", monospace;
-        font-size: 10px;
-        color: white;
-        background: #222;
-        border: 2px solid #555;
-        padding: 10px 15px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
+#gun {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #3a2c2c 0%, #1a1212 100%);
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    button:hover {
-        background: #444;
-        transform: scale(1.05);
-    }
+#barrel {
+  width: 80px;
+  height: 80px;
+  background: #2a1f1f;
+  border-radius: 50%;
+  position: absolute;
+  top: calc(50% - 40px);
+  left: calc(50% - 40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-size: 10px;
+}
 
-    .fire-btn {
-        background: #a00000;
-        border-color: #ff4040;
-    }
+button {
+  margin-top: 30px;
+  background: #501919;
+  color: #f0e0c0;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  background: #732a2a;
+  box-shadow: 0 0 15px rgba(255,255,255,0.1);
+}
 
-    .fire-btn:hover {
-        background: #ff0000;
-    }
+#log {
+  margin-top: 40px;
+  width: 80%;
+  max-width: 600px;
+  height: 120px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid #5a4a4a;
+  border-radius: 10px;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 10px;
+  color: #cfc7b0;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+}
 
-    .log-box {
-        margin-top: 20px;
-        width: 280px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        padding: 10px;
-        overflow-y: auto;
-        font-size: 10px;
-        line-height: 1.5;
-        white-space: pre-line;
-    }
+.fade {
+  animation: fade 0.5s ease;
+}
+@keyframes fade {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
 
-    .chamber {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        margin: 10px 0;
-    }
-
-    .slot {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #333;
-        border: 2px solid #777;
-    }
-
-    .slot.loaded {
-        background: #ffb300;
-        box-shadow: 0 0 8px #ffb300;
-    }
-
-    .slot.current {
-        border-color: #00ffff;
-        box-shadow: 0 0 10px #00ffff;
-    }
+.ambient {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 8px;
+  opacity: 0.4;
+}
 </style>
 </head>
 <body>
-    <h1>骗子酒馆 · 左轮手枪模拟器</h1>
+<h1>骗子酒馆 · 左轮手枪模拟器</h1>
 
-    <div class="gun-container">
-        <div class="chamber" id="chamber"></div>
+<div id="gun">
+  <div id="barrel">装填完毕</div>
+</div>
 
-        <div>
-            <button id="load">装弹</button>
-            <button id="spin">旋转弹膛</button>
-            <button class="fire-btn" id="fire">扳机</button>
-        </div>
+<button id="trigger">扣下扳机</button>
 
-        <div class="log-box" id="log">[系统] 模拟器已启动。</div>
-    </div>
+<div id="log"></div>
+<div class="ambient">骗子酒馆的空气弥漫着烟味与宿醉……</div>
 
 <script>
-    const chamber = document.getElementById('chamber');
-    const logBox = document.getElementById('log');
-    const slots = [];
-    let bulletIndex = -1;
-    let currentIndex = 0;
-    let loaded = false;
+let chambers = [false, false, false, false, false, false];
+let bulletPosition = Math.floor(Math.random() * 6);
+chambers[bulletPosition] = true;
+let currentPosition = 0;
+let gameOver = false;
 
-    function log(msg) {
-        const time = new Date().toLocaleTimeString();
-        logBox.textContent += `\n[${time}] ${msg}`;
-        logBox.scrollTop = logBox.scrollHeight;
-    }
+const log = document.getElementById('log');
+const barrel = document.getElementById('barrel');
+const trigger = document.getElementById('trigger');
 
-    // 初始化弹膛
-    function initChamber() {
-        chamber.innerHTML = '';
-        for (let i = 0; i < 6; i++) {
-            const div = document.createElement('div');
-            div.classList.add('slot');
-            chamber.appendChild(div);
-            slots.push(div);
-        }
-        updateChamber();
-    }
+function addLog(text) {
+  const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+  log.innerHTML += `[${time}] ${text}<br>`;
+  log.scrollTop = log.scrollHeight;
+}
 
-    function updateChamber() {
-        slots.forEach((slot, i) => {
-            slot.classList.remove('loaded', 'current');
-            if (i === bulletIndex) slot.classList.add('loaded');
-            if (i === currentIndex) slot.classList.add('current');
-        });
-    }
+addLog("骗子酒馆的空气弥漫着烟味……随机装弹完毕。");
 
-    document.getElementById('load').onclick = () => {
-        bulletIndex = Math.floor(Math.random() * 6);
-        currentIndex = 0;
-        loaded = true;
-        log("装弹完成。子弹已上膛。");
-        updateChamber();
-    };
+trigger.addEventListener('click', () => {
+  if (gameOver) return;
+  barrel.classList.add('fade');
+  setTimeout(() => barrel.classList.remove('fade'), 500);
 
-    document.getElementById('spin').onclick = () => {
-        if (!loaded) return log("请先装弹！");
-        currentIndex = Math.floor(Math.random() * 6);
-        log("旋转弹膛…… 位置随机！");
-        updateChamber();
-    };
-
-    document.getElementById('fire').onclick = () => {
-        if (!loaded) return log("还没有装弹。");
-        if (currentIndex === bulletIndex) {
-            log("💥 砰！你死了。");
-            loaded = false;
-            updateChamber();
-        } else {
-            log("咔。没事。下一轮……");
-            currentIndex = (currentIndex + 1) % 6;
-            updateChamber();
-        }
-    };
-
-    initChamber();
+  if (chambers[currentPosition]) {
+    barrel.textContent = "💥 砰！";
+    addLog("砰！你倒在酒馆的木地板上。");
+    gameOver = true;
+    trigger.textContent = "……游戏结束";
+    trigger.disabled = true;
+    document.body.style.background = "radial-gradient(circle at center, #4b0000 0%, #0a0000 100%)";
+  } else {
+    barrel.textContent = "咔……";
+    addLog("咔……没响。酒馆的气氛更沉重了。");
+    currentPosition = (currentPosition + 1) % 6;
+  }
+});
 </script>
 </body>
 </html>
