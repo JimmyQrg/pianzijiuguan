@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Liar Tavern - Gun Simulator</title>
+<title>骗子酒馆左轮手枪模拟器</title>
 
 <style>
 body {
@@ -17,9 +17,15 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  transition: background 1s ease;
 }
 
-/* 酒馆雾气 */
+/* 红色闪光 */
+body.shoot-red {
+  background: radial-gradient(ellipse at center, #4a0000 0%, #0d0000 100%) !important;
+}
+
+/* 雾气 */
 .smoke {
   position: absolute;
   top: 0; left: 0;
@@ -49,7 +55,7 @@ body::before {
   pointer-events: none;
 }
 
-/* 转轮与按钮区 */
+/* 转轮 */
 .revolver {
   position: relative;
   width: 200px;
@@ -61,6 +67,7 @@ body::before {
   justify-content: center;
   align-items: center;
   margin-bottom: 40px;
+  transition: transform 0.6s ease;
 }
 .chamber {
   width: 40px;
@@ -77,6 +84,7 @@ body::before {
 .chamber:nth-child(5) { transform: rotate(240deg) translateY(-70px); }
 .chamber:nth-child(6) { transform: rotate(300deg) translateY(-70px); }
 
+/* 按钮样式 */
 button {
   background: #3c2b20;
   color: #f8e4b1;
@@ -89,13 +97,8 @@ button {
   transition: all 0.15s;
   margin: 5px;
 }
-button:hover {
-  background: #5a3e2b;
-}
-button:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px #2a1c12;
-}
+button:hover { background: #5a3e2b; }
+button:active { transform: translateY(2px); box-shadow: 0 2px #2a1c12; }
 
 #playerCountInput {
   background: #2a1c12;
@@ -108,9 +111,16 @@ button:active {
   font-size: 12px;
   margin-bottom: 10px;
 }
+
 #info {
   margin-top: 10px;
   color: #c0a889;
+  font-size: 12px;
+}
+
+#shotCount {
+  margin-top: 20px;
+  color: #ff4c4c;
   font-size: 12px;
 }
 </style>
@@ -119,48 +129,51 @@ button:active {
 <body>
 <div class="smoke"></div>
 
-<h2 style="color:#f1d9b2;text-shadow:0 0 10px #000;">Liar Tavern - Gun Simulator</h2>
+<h2 style="color:#f1d9b2;text-shadow:0 0 10px #000;">骗子酒馆左轮手枪</h2>
 
-<input id="playerCountInput" type="number" placeholder="Player Amount (1~100)" min="1" max="100" value="1">
-<button onclick="buttonClick(); setPlayers()">Set Player Amount</button>
+<input id="playerCountInput" type="number" placeholder="玩家数 (1~100)" min="1" max="100" value="1">
+<button onclick="buttonClick(); setPlayers()">设定玩家数量</button>
 
 <div class="revolver" id="revolver"></div>
 <button onclick="buttonClick(); shoot()">开枪</button>
-<div id="info">Wait for filling the bullets...</div>
+
+<div id="info">等待装弹...</div>
+<div id="shotCount"></div>
 
 <audio id="emptySound" src="empty.mp3"></audio>
 <audio id="popSound" src="pop.mp3"></audio>
-<audio id="bgMusic" src="background-music.mp3" loop></audio>
 <audio id="tapSound" src="tap.mp3"></audio>
+<audio id="bgMusic" src="background-music.mp3" loop></audio>
 
 <script>
 const revolver = document.getElementById("revolver");
 const info = document.getElementById("info");
+const shotCountDisplay = document.getElementById("shotCount");
 const emptySound = document.getElementById("emptySound");
 const popSound = document.getElementById("popSound");
-const bgMusic = document.getElementById("bgMusic");
 const tapSound = document.getElementById("tapSound");
+const bgMusic = document.getElementById("bgMusic");
 bgMusic.volume = 0.4;
 
 let players = 1;
 let currentPlayer = 0;
 let chambers = [];
 let currentChamberIndex = [];
+let playerAlive = [];
+let playerShots = [];
 let bgStarted = false;
 
-// 枪膛
+// 初始化枪膛
 for (let i=0; i<6; i++) {
   const c = document.createElement("div");
   c.classList.add("chamber");
   revolver.appendChild(c);
 }
 
-// 点击按钮统一音效
+// 统一按钮点击音效与音乐启动
 function buttonClick() {
   tapSound.currentTime = 0;
   tapSound.play();
-
-  // 用户第一次点击时启动背景音乐
   if (!bgStarted) {
     bgMusic.play().catch(()=>{});
     bgStarted = true;
@@ -171,45 +184,91 @@ function buttonClick() {
 function setPlayers() {
   const val = parseInt(document.getElementById("playerCountInput").value);
   if (isNaN(val) || val < 1 || val > 100) {
-    alert("The player amount has to be between 1 and 100.");
+    alert("玩家数量必须在 1~100 之间。");
     return;
   }
   players = val;
   currentPlayer = 0;
   chambers = [];
   currentChamberIndex = [];
+  playerAlive = [];
+  playerShots = [];
   for (let i=0; i<players; i++) {
-    const bulletPos = Math.floor(Math.random() * 6);
-    chambers.push(bulletPos);
+    chambers.push(Math.floor(Math.random() * 6));
     currentChamberIndex.push(0);
+    playerAlive.push(true);
+    playerShots.push(0);
   }
-  info.textContent = `Bullet filled, currect player: 1 / ${players}`;
+  info.textContent = `已装弹。当前玩家: 1 / ${players}`;
+  shotCountDisplay.textContent = "0/6";
+}
+
+// 找下一个活着的玩家
+function nextAlivePlayer() {
+  for (let i = 1; i <= players; i++) {
+    const next = (currentPlayer + i) % players;
+    if (playerAlive[next]) return next;
+  }
+  return -1;
+}
+
+// 转轮动画
+function spinRevolver() {
+  revolver.style.transform = "rotate(0deg)";
+  setTimeout(() => {
+    revolver.style.transform = "rotate(360deg)";
+  }, 10);
 }
 
 // 开枪逻辑
 function shoot() {
   if (chambers.length === 0) {
-    info.textContent = "Please set the player amount first.";
+    info.textContent = "请先设定玩家数量。";
     return;
+  }
+
+  // 找当前玩家
+  if (!playerAlive[currentPlayer]) {
+    currentPlayer = nextAlivePlayer();
+    if (currentPlayer === -1) {
+      info.textContent = "所有玩家阵亡。";
+      return;
+    }
   }
 
   const player = currentPlayer;
   const index = currentChamberIndex[player];
   const bulletPos = chambers[player];
 
-  if (index === bulletPos) {
-    popSound.currentTime = 0;
-    popSound.play();
-    info.textContent = `Player ${player+1} fires! Blood exploded out from the player's head in all directions.!`;
-  } else {
-    emptySound.currentTime = 0;
-    emptySound.play();
-    info.textContent = `Player ${player+1} Fires! Nothing happened. The player breaths heavily`;
-  }
+  spinRevolver();
 
-  currentChamberIndex[player] = (index + 1) % 6;
-  currentPlayer = (currentPlayer + 1) % players;
-  info.textContent += ` → Next Player: ${currentPlayer+1}`;
+  playerShots[player]++;
+  shotCountDisplay.textContent = `${playerShots[player]}/6`;
+
+  setTimeout(() => {
+    if (index === bulletPos) {
+      popSound.currentTime = 0;
+      popSound.play();
+      playerAlive[player] = false;
+      document.body.classList.add("shoot-red");
+      setTimeout(() => document.body.classList.remove("shoot-red"), 1000);
+      info.textContent = `玩家 ${player+1} 开枪！中弹！`;
+    } else {
+      emptySound.currentTime = 0;
+      emptySound.play();
+      info.textContent = `玩家 ${player+1} 安然无事。`;
+    }
+
+    currentChamberIndex[player] = (index + 1) % 6;
+
+    const next = nextAlivePlayer();
+    if (next === -1) {
+      info.textContent += " 所有玩家阵亡。";
+    } else {
+      currentPlayer = next;
+      info.textContent += ` → 下一个玩家: ${currentPlayer+1}`;
+    }
+  }, 500);
 }
 </script>
 </body>
