@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>骗子酒馆：左轮手枪模拟器</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    background: radial-gradient(circle at center, #2a1e18 0%, #0d0907 100%);
+    font-family: 'Press Start 2P', monospace;
+    color: #c1a97b;
+    text-align: center;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  h1 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #d3b982;
+    text-shadow: 0 0 8px #513f2d;
+  }
+  #players {
+    margin-bottom: 15px;
+  }
+  select {
+    background: #1b120d;
+    color: #c9ad73;
+    border: 2px solid #5c452f;
+    padding: 5px;
+    font-family: 'Press Start 2P', monospace;
+  }
+  button {
+    background: #3b2a1f;
+    color: #d9c197;
+    border: 2px solid #70573f;
+    font-family: 'Press Start 2P', monospace;
+    padding: 12px 24px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: 0.1s;
+  }
+  button:hover {
+    background: #5a4030;
+    box-shadow: 0 0 10px #a88356;
+  }
+  #status {
+    font-size: 14px;
+    margin-top: 30px;
+    min-height: 40px;
+    text-shadow: 0 0 5px #3a2a1f;
+  }
+  #lamp {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 20%, rgba(255,230,180,0.08), rgba(0,0,0,0.95) 80%);
+    pointer-events: none;
+    animation: flicker 3s infinite;
+  }
+  @keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+      opacity: 1;
+    }
+    20%, 24%, 55% {
+      opacity: 0.7;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="lamp"></div>
+  <h1>骗子酒馆：左轮手枪模拟器</h1>
+  <div id="players">
+    <label>玩家数量：</label>
+    <select id="playerCount">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+  </div>
+  <button id="nextPlayerBtn">切换玩家</button>
+  <button id="fireBtn">扣下扳机</button>
+  <div id="status"></div>
+
+  <audio id="bgm" src="background-music.mp3" loop></audio>
+  <audio id="empty" src="empty.mp3"></audio>
+  <audio id="pop" src="pop.mp3"></audio>
+
+<script>
+  const bgm = document.getElementById('bgm');
+  const empty = document.getElementById('empty');
+  const pop = document.getElementById('pop');
+  const status = document.getElementById('status');
+  const playerCountSelect = document.getElementById('playerCount');
+  const nextPlayerBtn = document.getElementById('nextPlayerBtn');
+  const fireBtn = document.getElementById('fireBtn');
+
+  let playerCount = 1;
+  let currentPlayer = 1;
+  let chambers = {}; // 每个玩家独立弹仓
+
+  // 初始化
+  function initPlayers() {
+    chambers = {};
+    for (let i = 1; i <= playerCount; i++) {
+      let bullets = Array(6).fill(false);
+      bullets[Math.floor(Math.random() * 6)] = true; // 随机装一发子弹
+      chambers[i] = { bullets, index: 0 };
+    }
+    status.innerHTML = `夜色昏暗。第 ${currentPlayer} 位玩家拿起了左轮……`;
+  }
+
+  // 切换玩家
+  nextPlayerBtn.onclick = () => {
+    currentPlayer++;
+    if (currentPlayer > playerCount) currentPlayer = 1;
+    status.innerHTML = `第 ${currentPlayer} 位玩家的手在发抖……`;
+  };
+
+  // 改变玩家数量
+  playerCountSelect.onchange = () => {
+    playerCount = parseInt(playerCountSelect.value);
+    currentPlayer = 1;
+    initPlayers();
+  };
+
+  // 扣下扳机
+  fireBtn.onclick = () => {
+    bgm.volume = 0.3;
+    bgm.play();
+
+    const chamber = chambers[currentPlayer];
+    const { bullets, index } = chamber;
+
+    if (bullets[index]) {
+      pop.play();
+      status.innerHTML = `砰——！第 ${currentPlayer} 位玩家的命运终结在了此刻。`;
+    } else {
+      empty.play();
+      status.innerHTML = `咔……寂静的酒馆里，只有呼吸声在回荡。`;
+    }
+
+    // 旋转弹仓（随机）
+    chamber.index = Math.floor(Math.random() * 6);
+  };
+
+  // 启动
+  window.onload = () => {
+    playerCount = parseInt(playerCountSelect.value);
+    initPlayers();
+    setTimeout(() => bgm.play(), 1000);
+  };
+</script>
+</body>
+</html>
